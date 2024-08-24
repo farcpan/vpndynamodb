@@ -9,6 +9,7 @@ import {
 import { Table, AttributeType, BillingMode } from "aws-cdk-lib/aws-dynamodb";
 import {
   CfnCustomerGateway,
+  CfnEIP,
   CfnRoute,
   CfnVPCGatewayAttachment,
   CfnVPNConnection,
@@ -17,12 +18,12 @@ import {
 } from "aws-cdk-lib/aws-ec2";
 
 interface SrcStackProps extends StackProps {
-  eip: string;
   psk: string;
 }
 
 export class SrcStack extends Stack {
   public customerGatewayIp: string;
+  public eip: string;
 
   constructor(scope: Construct, id: string, props: SrcStackProps) {
     super(scope, id, props);
@@ -40,6 +41,12 @@ export class SrcStack extends Stack {
       ],
     });
 
+    // EIP
+    this.eip = new CfnEIP(this, "ec2eip").ref;
+    new CfnOutput(this, "InstancePublicIp", {
+      value: this.eip, // Elastic IPの値を出力
+    });
+
     // DynamoDB テーブルの作成
     const dynamoTable = new Table(this, "DynamoDBTable", {
       tableName: "VpnDynamoDbTable",
@@ -49,6 +56,7 @@ export class SrcStack extends Stack {
     });
 
     // VGWの作成
+    /*
     const vpnGateway = new CfnVPNGateway(this, "VGW", {
       type: "ipsec.1",
       amazonSideAsn: 65000, // 必要に応じてAS番号を設定
@@ -59,8 +67,10 @@ export class SrcStack extends Stack {
       vpcId: vpc.vpcId,
       vpnGatewayId: vpnGateway.attrVpnGatewayId,
     });
+    */
 
     // DynamoDB用インターフェース型VPCエンドポイントの作成
+    /*
     const dynamoDbEndpoint = new InterfaceVpcEndpoint(
       this,
       "DynamoDBEndpoint",
@@ -74,8 +84,10 @@ export class SrcStack extends Stack {
         },
       }
     );
+    */
 
     // EC2からVGWを経由してアクセスするためのネットワーク経路を作成
+    /*
     const privateSubnets = vpc.isolatedSubnets;
     privateSubnets.map((subnet, index) => {
       new CfnRoute(this, `RouteToVGW_${index + 1}`, {
@@ -84,11 +96,13 @@ export class SrcStack extends Stack {
         gatewayId: vpnGateway.attrVpnGatewayId,
       });
     });
+    */
 
+    /*
     // カスタマーゲートウェイ
     const customerGateway = new CfnCustomerGateway(this, "CustomerGateway", {
       bgpAsn: 65001,
-      ipAddress: props.eip, // EC2に割り当てるElastic IP
+      ipAddress: this.eip, // EC2に割り当てるElastic IP
       type: "ipsec.1",
     });
     this.customerGatewayIp = customerGateway.ipAddress;
@@ -102,7 +116,6 @@ export class SrcStack extends Stack {
       vpnTunnelOptionsSpecifications: [
         {
           preSharedKey: props.psk,
-          tunnelInsideCidr: "10.2.0.0/16", // オンプレミス環境のみを許可
         },
       ],
     });
@@ -112,5 +125,6 @@ export class SrcStack extends Stack {
       value: Fn.join("\n", dynamoDbEndpoint.vpcEndpointDnsEntries),
       description: "DynamoDB Interface Endpoint DNS Name for AZ",
     });
+    */
   }
 }

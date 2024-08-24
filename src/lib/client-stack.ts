@@ -72,12 +72,12 @@ export class ClientStack extends Stack {
 
     /// インスタンス
     const instance = new Instance(this, "MyInstance", {
-      vpc,
-      instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MICRO),
+      vpc: vpc,
+      instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.NANO),
       machineImage: MachineImage.latestAmazonLinux2(),
-      securityGroup,
-      role,
-      userData: this.getUserData(props.customerGatewayIp, props.psk),
+      securityGroup: securityGroup,
+      role: role,
+      // userData: this.getUserData(props.customerGatewayIp, props.psk),
     });
 
     /// インスタンスにEIPをアタッチ
